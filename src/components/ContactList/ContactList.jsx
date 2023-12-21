@@ -1,6 +1,6 @@
 import { FaTrashAlt, FaUser } from 'react-icons/fa';
 import { useDispatch, useSelector } from 'react-redux';
-import { getError, getFilteredContacts, getIsLoading } from '../../redux/selectors';
+import { getError, getIsLoading, getContacts, getFilter } from '../../redux/selectors';
 import { deleteContact } from '../../redux/operations';
 
 import {
@@ -16,13 +16,22 @@ import {
 
 export const ContactList = () => {
   const dispatch = useDispatch();
-  const contacts = useSelector(getFilteredContacts);
+  const contacts = useSelector(getContacts);
   const error = useSelector(getError);
   const isLoading = useSelector(getIsLoading);
+  const filter = useSelector(getFilter);
+
+  const getFilteredContacts = () => {
+    return contacts.filter(contact =>
+      contact.name?.toLowerCase().includes(filter.toLowerCase())
+    );
+  };
+
+    const filteredContacts = getFilteredContacts();
+
 
   return (
     <>
-      {!isLoading && !error ? (
         <ContactsTable>
           <thead>
             <tr>
@@ -35,32 +44,32 @@ export const ContactList = () => {
           </thead>
 
           <tbody>
-            {contacts.map(({ id, name, phone }) => {
-              return (
-                <ContactsTableRow key={id}>
-                  <ContactsFlexCeil>
-                    <ListIcon>
-                      <FaUser size="20" color="white" />
-                    </ListIcon>
-                    {name}
-                  </ContactsFlexCeil>
-                  <ContactsTableCeil>{phone}</ContactsTableCeil>
-                  <ContactsTableCeil>
-                    <ListBtn
-                      type="button"
-                      onClick={() => dispatch(deleteContact(id))}
-                    >
-                      <FaTrashAlt size="20" />
-                    </ListBtn>
-                  </ContactsTableCeil>
-                </ContactsTableRow>
-              );
-            })}
+          {isLoading ? (<Loading>Loading...</Loading>) : (<>
+
+            {filteredContacts.map(contact => (
+              <ContactsTableRow key={contact.id}>
+              <ContactsFlexCeil>
+                <ListIcon>
+                  <FaUser size="20" color="white" />
+                </ListIcon>
+                {contact.name}
+              </ContactsFlexCeil>
+              <ContactsTableCeil>{contact.number}</ContactsTableCeil>
+              <ContactsTableCeil>
+                <ListBtn
+                  type="button"
+                  onClick={() => dispatch(deleteContact(contact.id))}
+                >
+                  <FaTrashAlt size="20" />
+                </ListBtn>
+              </ContactsTableCeil>
+            </ContactsTableRow>
+            ))}
+            
+          </>)}
           </tbody>
         </ContactsTable>
-      ) : (
-        <Loading>Loading...</Loading>
-      )}
+      
     </>
   );
 };
